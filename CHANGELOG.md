@@ -1,0 +1,13 @@
+# Changelog
+
+Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/) via git tags (while in `v0.x`, a MINOR release may include breaking changes; strict semver applies from `v1.0.0` onward).
+
+## [0.1.0] - 2026-07-10
+
+### Added
+- Initial release, mirroring `@greenflags/client` 0.2.x semantics in pure Go (1.22+, zero dependencies).
+- `Client` with `Refresh(ctx)`, `Snapshot`, `AllFlags`, `GetFlag` (value + ok), `IsEnabled`, typed accessors with defaults (`BoolFlag`/`StringFlag`/`NumberFlag`/`JSONFlag`), `Subscribe`, `StartPolling`/`StopPolling` (context-aware goroutine, fail-open), `SetCoordinates`.
+- Concurrency-safe snapshot access (`sync.RWMutex`) — one client shared across goroutines.
+- Client-side geofence evaluation (haversine): outside the radius a `boolean` flag evaluates to `false`, other types to `nil`. Every read path goes through evaluation — the raw snapshot is never exposed.
+- Typed `*Error` with API error `Code`, `Message` and HTTP `Status` (`NETWORK_ERROR`/`PARSE_ERROR` client-side).
+- Injectable `*http.Client` (default 10s timeout), auth via `Authorization: Bearer` against `GET /v1/flags`.
