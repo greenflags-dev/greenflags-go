@@ -234,7 +234,7 @@ func (c *Client) evaluateLocked(flag Flag) Flag {
 		return flag
 	}
 	center := Coordinates{Latitude: flag.Geofence.Latitude, Longitude: flag.Geofence.Longitude}
-	outside := haversineMeters(*c.coordinates, center) > flag.Geofence.RadiusMeters
+	outside := GeoDistanceMeters(*c.coordinates, center) > flag.Geofence.RadiusMeters
 	if !outside {
 		return flag
 	}

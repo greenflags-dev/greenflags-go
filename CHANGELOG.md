@@ -2,6 +2,11 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/) via git tags (while in `v0.x`, a MINOR release may include breaking changes; strict semver applies from `v1.0.0` onward).
 
+## [0.2.0] - 2026-07-11
+
+### Added
+- `GeoDistanceMeters(a, b Coordinates) float64` — exported from the package. Returns the great-circle distance in meters between two `Coordinates`, the same haversine calculation the SDK runs internally for geofence evaluation. Lets callers show the live distance to a geofence without reimplementing it. No behavior change to flag evaluation.
+
 ## [0.1.0] - 2026-07-10
 
 ### Added

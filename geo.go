@@ -8,8 +8,11 @@ func toRadians(degrees float64) float64 {
 	return degrees * math.Pi / 180
 }
 
-// haversineMeters mirrors the JS/Dart/Python SDK implementations exactly.
-func haversineMeters(a, b Coordinates) float64 {
+// GeoDistanceMeters returns the great-circle distance between a and b in meters
+// (haversine formula). This is the exact calculation the SDK runs internally to
+// evaluate geofenced flags, exposed so callers can show the live distance to a
+// geofence without reimplementing it.
+func GeoDistanceMeters(a, b Coordinates) float64 {
 	phi1 := toRadians(a.Latitude)
 	phi2 := toRadians(b.Latitude)
 	deltaPhi := toRadians(b.Latitude - a.Latitude)
