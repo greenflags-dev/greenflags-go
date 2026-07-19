@@ -2,6 +2,13 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/) via git tags (while in `v0.x`, a MINOR release may include breaking changes; strict semver applies from `v1.0.0` onward).
 
+## [0.3.0] - 2026-07-18
+
+### Added
+- Percentage rollout and multivariate evaluation with per-call user identity: `GetFlagForUser(key, user)` and `IsEnabledForUser(key, user)` resolve a flag's `rollout`/`variants` rules for a specific end user (server processes serve many users, so identity is per call — there is no SetUser). Chain: geofence → variants → rollout, per `docs/rollout-hash-spec.md`; conformance locked by `sdks/rollout-test-vectors.json`.
+- `Rollout`, `FlagVariant`, `WeightedVariant` types and `RolloutBucket`/`IsIncludedInRollout`/`AssignVariant` exported.
+- `Flag` gains `Rollout`/`Variants` fields (raw config visible on no-user reads; `GetFlag` passes through unchanged, fail-open).
+
 ## [0.2.0] - 2026-07-11
 
 ### Added

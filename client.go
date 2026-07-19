@@ -117,6 +117,28 @@ func (c *Client) IsEnabled(key string) bool {
 	return ok && value == true
 }
 
+// GetFlagForUser returns the evaluated value of key for a specific end user,
+// resolving percentage rollout and variants with the given user key (see
+// docs/rollout-hash-spec.md). Server processes serve many users, so identity
+// is per call — there is no SetUser. Chain: geofence (client coordinates) →
+// variants → rollout. Local read; never errors for missing flags.
+func (c *Client) GetFlagForUser(key, user string) (any, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	flag, ok := c.snapshot[key]
+	if !ok {
+		return nil, false
+	}
+	return c.evaluateForUserLocked(flag, user).Value, true
+}
+
+// IsEnabledForUser returns true only when key exists and evaluates to true
+// for the given user.
+func (c *Client) IsEnabledForUser(key, user string) bool {
+	value, ok := c.GetFlagForUser(key, user)
+	return ok && value == true
+}
+
 // BoolFlag returns the flag's value as a bool, or def when the flag is
 // missing or not a bool.
 func (c *Client) BoolFlag(key string, def bool) bool {
@@ -238,10 +260,49 @@ func (c *Client) evaluateLocked(flag Flag) Flag {
 	if !outside {
 		return flag
 	}
+	return offValue(flag)
+}
+
+func offValue(flag Flag) Flag {
 	if flag.Type == FlagTypeBoolean {
 		flag.Value = false
 	} else {
 		flag.Value = nil
 	}
+	return flag
+}
+
+// evaluateForUserLocked applies the full chain per docs/rollout-hash-spec.md:
+// geofence first, then variants/rollout with the per-call user key.
+func (c *Client) evaluateForUserLocked(flag Flag, user string) Flag {
+	if c.coordinates != nil && flag.Geofence != nil {
+		center := Coordinates{Latitude: flag.Geofence.Latitude, Longitude: flag.Geofence.Longitude}
+		if GeoDistanceMeters(*c.coordinates, center) > flag.Geofence.RadiusMeters {
+			return offValue(flag)
+		}
+	}
+
+	if len(flag.Variants) > 0 {
+		weighted := make([]WeightedVariant, 0, len(flag.Variants))
+		for _, variant := range flag.Variants {
+			weighted = append(weighted, WeightedVariant{Name: variant.Name, Weight: variant.Weight})
+		}
+		name, assigned := AssignVariant(flag.Key, user, weighted)
+		if !assigned {
+			return flag // beyond total weight → base value
+		}
+		for _, variant := range flag.Variants {
+			if variant.Name == name {
+				flag.Value = variant.Value
+				return flag
+			}
+		}
+		return flag
+	}
+
+	if flag.Rollout != nil && !IsIncludedInRollout(flag.Key, user, flag.Rollout.Percentage) {
+		return offValue(flag)
+	}
+
 	return flag
 }

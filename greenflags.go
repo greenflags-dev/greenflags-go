@@ -31,14 +31,29 @@ type Geofence struct {
 	RadiusMeters float64 `json:"radiusMeters"`
 }
 
+// Rollout is a percentage rollout rule: Percentage% of users (bucketed
+// deterministically per docs/rollout-hash-spec.md) receive the flag's value.
+type Rollout struct {
+	Percentage int `json:"percentage"`
+}
+
+// FlagVariant is a weighted variant of a multivariate flag.
+type FlagVariant struct {
+	Name   string `json:"name"`
+	Weight int    `json:"weight"`
+	Value  any    `json:"value"`
+}
+
 // Flag is a feature flag as served by GET /v1/flags. Value holds bool,
 // string, float64, map[string]any or nil depending on Type (and geofence
 // evaluation).
 type Flag struct {
-	Key      string    `json:"key"`
-	Type     FlagType  `json:"type"`
-	Value    any       `json:"value"`
-	Geofence *Geofence `json:"geofence,omitempty"`
+	Key      string        `json:"key"`
+	Type     FlagType      `json:"type"`
+	Value    any           `json:"value"`
+	Geofence *Geofence     `json:"geofence,omitempty"`
+	Rollout  *Rollout      `json:"rollout,omitempty"`
+	Variants []FlagVariant `json:"variants,omitempty"`
 }
 
 // Error is returned on network or API failures. Code mirrors the API error

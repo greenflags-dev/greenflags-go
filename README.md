@@ -222,3 +222,14 @@ Semver via git tags (`v0.1.0`, …). While in `v0.x`, `MINOR` can include API ch
 - [`greenflags`](https://pub.dev/packages/greenflags) — Dart/Flutter SDK
 - [`greenflags` on PyPI](https://pypi.org/project/greenflags/) — Python SDK
 - [`@greenflags/mcp`](https://www.npmjs.com/package/@greenflags/mcp) — MCP server for AI agents
+
+## Percentage rollout & variants
+
+Server processes serve many users, so identity is per call — resolve rollout/variants for a specific end user with:
+
+```go
+value, ok := client.GetFlagForUser("new-checkout", userID)
+enabled := client.IsEnabledForUser("new-checkout", userID)
+```
+
+`GetFlag` (no user) keeps returning the raw value with the rollout/variant config attached (fail-open). Bucketing is deterministic and identical across every GreenFlags SDK and the server (`docs/rollout-hash-spec.md`).
